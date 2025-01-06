@@ -1,0 +1,24 @@
+{
+	"name": "SqlServer1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"server": "YASHWANTH",
+			"database": "training",
+			"encrypt": "optional",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "yashwanth",
+			"alwaysEncryptedSettings": {
+				"alwaysEncryptedAkvAuthType": "ManagedIdentity"
+			},
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJjN2M3YWYwZS1iM2JiLTRhNDktYjhjNi1jZDQ3NWVlMjUzZWIiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "yashIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

@@ -1,0 +1,24 @@
+{
+	"name": "yashtrigger",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "CopyFromBlobToSqlPipeline",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Minute",
+				"interval": 2,
+				"startTime": "2024-12-18T10:50:00",
+				"timeZone": "India Standard Time"
+			}
+		}
+	}
+}

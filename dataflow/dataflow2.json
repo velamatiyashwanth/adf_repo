@@ -1,0 +1,110 @@
+{
+	"name": "dataflow2",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_sqldatabase",
+						"type": "DatasetReference"
+					},
+					"name": "Customer"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_sqldatabase1",
+						"type": "DatasetReference"
+					},
+					"name": "department"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_TargetDB",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_finance",
+						"type": "DatasetReference"
+					},
+					"name": "sink2"
+				}
+			],
+			"transformations": [
+				{
+					"name": "join1"
+				},
+				{
+					"name": "split1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Cust_ID as integer,",
+				"          Customer_Name as string,",
+				"          Dept_ID as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> Customer",
+				"source(output(",
+				"          Dept_ID as integer,",
+				"          Dept_Name as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> department",
+				"Customer, department join(Customer@Dept_ID == department@Dept_ID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 split(equals(Dept_Name,\"HR\"),",
+				"     disjoint: false) ~> split1@(HR, Finance)",
+				"split1@HR sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Cust_ID as integer,",
+				"          Customer_Name as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Cust_ID,",
+				"          Customer_Name",
+				"     )) ~> sink1",
+				"split1@Finance sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Cust_ID as integer,",
+				"          Customer_Name as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Cust_ID,",
+				"          Customer_Name",
+				"     )) ~> sink2"
+			]
+		}
+	}
+}

@@ -1,0 +1,292 @@
+{
+	"name": "parameterized",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup1",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "DS_parameterized_json",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": {
+								"value": "@pipeline().parameters.fileName",
+								"type": "Expression"
+							},
+							"folderName": {
+								"value": "@pipeline().parameters.adlsPath",
+								"type": "Expression"
+							}
+						}
+					}
+				}
+			},
+			{
+				"name": "servername",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "servername",
+					"value": {
+						"value": "@activity('Lookup1').output.firstRow.destination.servername",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "databasename",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "databasename",
+					"value": {
+						"value": "@activity('Lookup1').output.firstRow.destination.databaseName",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "tablename",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "tablename",
+					"value": {
+						"value": "@activity('Lookup1').output.firstRow.destination.tablename",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Data flow1",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "servername",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "databasename",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "tablename",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "foldername",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "filename",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "dataflow3",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"source1": {
+								"foldername": {
+									"value": "@variables('foldername')",
+									"type": "Expression"
+								},
+								"fileName": {
+									"value": "@variables('filename')",
+									"type": "Expression"
+								}
+							},
+							"sink1": {
+								"serverName": {
+									"value": "@variables('servername')",
+									"type": "Expression"
+								},
+								"databaseName": {
+									"value": "@variables('databasename')",
+									"type": "Expression"
+								},
+								"tableName": {
+									"value": "@variables('tablename')",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceParameters": {
+							"source1": {
+								"schemaLinkedService": {
+									"foldername": {
+										"value": "@variables('foldername')",
+										"type": "Expression"
+									},
+									"fileName": {
+										"value": "@variables('filename')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "foldername",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "foldername",
+					"value": {
+						"value": "@activity('Lookup1').output.firstRow.source.adlsPath",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "filename",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "filename",
+					"value": {
+						"value": "@activity('Lookup1').output.firstRow.source.fileName",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"adlsPath": {
+				"type": "string",
+				"defaultValue": "config"
+			},
+			"fileName": {
+				"type": "string",
+				"defaultValue": "Config.json"
+			}
+		},
+		"variables": {
+			"servername": {
+				"type": "String"
+			},
+			"databasename": {
+				"type": "String"
+			},
+			"tablename": {
+				"type": "String"
+			},
+			"foldername": {
+				"type": "String"
+			},
+			"filename": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-01-01T06:45:06Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

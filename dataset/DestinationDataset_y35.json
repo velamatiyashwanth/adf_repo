@@ -1,0 +1,24 @@
+{
+	"name": "DestinationDataset_y35",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "sqltoblob",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "BigMart Sales.csv",
+				"container": "yashcontainer"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

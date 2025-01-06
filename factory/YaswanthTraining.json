@@ -1,0 +1,21 @@
+{
+	"name": "YaswanthTraining",
+	"properties": {
+		"globalParameters": {
+			"Environment": {
+				"type": "string",
+				"value": "Production "
+			},
+			"FileFormat": {
+				"type": "string",
+				"value": "csv"
+			}
+		}
+	},
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "1255658b-8a59-4813-b6ce-dc1eec154ba6",
+		"tenantId": "818467cf-44b9-45a5-a41a-1ef924fcd795"
+	}
+}

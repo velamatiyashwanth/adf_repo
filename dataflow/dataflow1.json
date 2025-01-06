@@ -1,0 +1,153 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Customerdata",
+						"type": "DatasetReference"
+					},
+					"name": "Personaldetails",
+					"description": "Add source dImportatase"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable1",
+						"type": "DatasetReference"
+					},
+					"name": "Customerpurchases"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable2",
+						"type": "DatasetReference"
+					},
+					"name": "Locationdetails"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Parquet1",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "join1"
+				},
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "FullName"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "join2"
+				},
+				{
+					"name": "sort1"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "surrogateKey1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerID as integer,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          Age as integer,",
+				"          IsActive as boolean,",
+				"          {LocationID } as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> Personaldetails",
+				"source(output(",
+				"          CustomerID as integer,",
+				"          Month as string,",
+				"          PurchaseAmount as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> Customerpurchases",
+				"source(output(",
+				"          LocationID as integer,",
+				"          Region as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> Locationdetails",
+				"Personaldetails, Customerpurchases join(Personaldetails@CustomerID == Customerpurchases@CustomerID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1, Locationdetails lookup({LocationID } == LocationID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup1",
+				"lookup1 derive(FullName = concat(FirstName, ' ', LastName),",
+				"          AgeGroup = iif(Age >= 18 && Age < 30, 'Young Adult',        iif(Age >= 30 && Age < 50, 'Adult', 'Senior'))) ~> FullName",
+				"FullName filter(equals(IsActive,true()) && greaterOrEqual(Age,18)) ~> filter1",
+				"filter1 aggregate(groupBy(Customerpurchases@CustomerID),",
+				"     TotalSpend = sum(PurchaseAmount)) ~> aggregate1",
+				"aggregate1 derive(Customersegment = iif(TotalSpend > 5000,'High Spender',   iif(TotalSpend >= 1000,'Medium Spender',  'Low Spender'))) ~> derivedColumn1",
+				"derivedColumn1, FullName join(aggregate1@CustomerID == Customerpurchases@CustomerID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"join2 sort(asc(FullName, true)) ~> sort1",
+				"sort1 select(mapColumn(",
+				"          CustomerID = aggregate1@CustomerID,",
+				"          FullName,",
+				"          Age,",
+				"          Region,",
+				"          Totalspend = TotalSpend,",
+				"          Customersegment",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 keyGenerate(output(Customerkey as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey1",
+				"surrogateKey1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          CustomerID,",
+				"          FullName,",
+				"          Age,",
+				"          Region,",
+				"          Totalspend,",
+				"          Customersegment",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

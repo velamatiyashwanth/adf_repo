@@ -1,0 +1,230 @@
+{
+	"name": "CopyFromBlobToSqlPipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy_6fl",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "yashcontainer//BigMart Sales.csv"
+					},
+					{
+						"name": "Destination",
+						"value": "dbo.BigMart Sales"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings",
+							"skipLineCount": 0
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "upsert",
+						"upsertSettings": {
+							"useTempDB": true,
+							"keys": [
+								"Item_Identifier"
+							]
+						},
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"validateDataConsistency": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Item_Identifier",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Item_Identifier",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Item_Weight",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Item_Weight",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Item_Fat_Content",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Item_Fat_Content",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Item_Visibility",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Item_Visibility",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Item_Type",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Item_Type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Item_MRP",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Item_MRP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Outlet_Identifier",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Outlet_Identifier",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Outlet_Establishment_Year",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Outlet_Establishment_Year",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Outlet_Size",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Outlet_Size",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Outlet_Location_Type",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Outlet_Location_Type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Outlet_Type",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Outlet_Type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Item_Outlet_Sales",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Item_Outlet_Sales",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SourceDataset_6fl",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DestinationDataset_6fl",
+						"type": "DatasetReference",
+						"parameters": {
+							"tablename": "emp"
+						}
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2024-12-24T05:40:34Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
