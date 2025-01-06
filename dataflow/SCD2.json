@@ -1,0 +1,167 @@
+{
+	"name": "SCD2",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "AzureSqlDatabase1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "stage"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureSqlDatabase1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "Dim"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "AzureSqlDatabase1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sink1"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureSqlDatabase1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sink2"
+				}
+			],
+			"transformations": [
+				{
+					"name": "join1"
+				},
+				{
+					"name": "split1"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "alterRow1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          employee_id as integer,",
+				"          first_name as string,",
+				"          last_name as string,",
+				"          email as string,",
+				"          hire_date as date,",
+				"          department as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'dbo',",
+				"     tableName: 'stage_employee',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> stage",
+				"source(output(",
+				"          sur_key as integer,",
+				"          employee_id as integer,",
+				"          first_name as string,",
+				"          last_name as string,",
+				"          email as string,",
+				"          hire_date as date,",
+				"          department as string,",
+				"          active_int as boolean,",
+				"          flag as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'query',",
+				"     store: 'sqlserver',",
+				"     query: 'select * from dim_employee_scd2\\nwhere active_int=1',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> Dim",
+				"stage, Dim join(stage@employee_id == Dim@employee_id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"select1 split(equals(isNull(d_employee_id),false())  && (notEquals(isNull(d_department), true()) && notEquals(d_department, s_department)),",
+				"     isNull(d_employee_id)  || (notEquals(isNull(d_department), true()) && notEquals(d_department, s_department)),",
+				"     disjoint: true) ~> split1@(modified, new)",
+				"join1 select(mapColumn(",
+				"          s_employee_id = stage@employee_id,",
+				"          S_first_name = stage@first_name,",
+				"          s_last_name = stage@last_name,",
+				"          s_email = stage@email,",
+				"          s_hire_date = stage@hire_date,",
+				"          s_department = stage@department,",
+				"          sur_key,",
+				"          d_employee_id = Dim@employee_id,",
+				"          d_first_name = Dim@first_name,",
+				"          d_last_name = Dim@last_name,",
+				"          d_email = Dim@email,",
+				"          d_hire_date = Dim@hire_date,",
+				"          d_department = Dim@department,",
+				"          active_int,",
+				"          flag",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"split1@new derive(new_flag = 'new') ~> derivedColumn1",
+				"split1@modified derive(new_flag = 'old',",
+				"          new_active_int = false()) ~> derivedColumn2",
+				"derivedColumn2 alterRow(updateIf(true())) ~> alterRow1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'dbo',",
+				"     tableName: 'dim_employee_scd2',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          employee_id = s_employee_id,",
+				"          first_name = S_first_name,",
+				"          last_name = s_last_name,",
+				"          email = s_email,",
+				"          hire_date = s_hire_date,",
+				"          department = s_department,",
+				"          flag = new_flag",
+				"     )) ~> sink1",
+				"alterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'dbo',",
+				"     tableName: 'dim_employee_scd2',",
+				"     insertable: false,",
+				"     updateable: true,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     keys:['sur_key'],",
+				"     skipKeyWrites:true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          flag = new_flag,",
+				"          active_int = new_active_int,",
+				"          sur_key",
+				"     )) ~> sink2"
+			]
+		}
+	}
+}
